@@ -14,7 +14,14 @@ public class Client {
             emailMessage.setContent("This is the " + i + "th");
             center.addMessage(emailMessage);
         }
-
+        center.startCenter();
+        try {
+            Thread.sleep(200);
+        }
+        catch(Exception e) {
+        }
+        center.suspendCenter();
+        center.reStartCenter();
         for (int i = 0 ;i < 20; i++){
             HiMessage hiMessage = new HiMessage("LiHaifeng","HiSomeOne");
             hiMessage.setContent("This is the " + i + "th");
@@ -27,6 +34,6 @@ public class Client {
             center.addMessage(smsMessage);
         }
 
-        center.startCenter();
+
     }
 }

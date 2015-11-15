@@ -27,18 +27,21 @@ public class MessageCenter {
         executorService = (ExecutorService) executor;
     }
 
-    public void startCenter(){
+    public synchronized void startCenter(){
         if(null == this.sendThread){
             sendThread = new SendThread();
             this.sendThread.start();
         }
     }
 
-    public static synchronized MessageCenter getInstance() {
-        if (singleton == null) {
-            synchronized (MessageCenter.class) {
-                if (singleton == null) {
-                    singleton = new MessageCenter();
+
+    public static MessageCenter getInstance() {
+        synchronized(MessageCenter.class) {
+            if (singleton == null) {
+                synchronized (MessageCenter.class) {
+                    if (singleton == null) {
+                        singleton = new MessageCenter();
+                    }
                 }
             }
         }
@@ -46,12 +49,22 @@ public class MessageCenter {
     }
 
     public void suspendCenter(){
-        if(executorService.isShutdown() != true) {
-            System.console().printf("Center is shuting down!");
-            executorService.shutdown();
+        if(this.sendThread.isSuspend()){
+            this.sendThread.suspendCenter();
+//            System.console().printf("Successful!!Center suspends!!");
         }
-        else {
-            System.console().printf("Center has shut down");
+        else{
+//            System.console().printf("Failed!!Center is suspended!!");
+        }
+    }
+
+    public void reStartCenter(){
+        if(this.sendThread.isSuspend()){
+//            System.console().printf("Failed!!Center is running!!");
+        }
+        else{
+            this.sendThread.startCenter();
+//            System.console().printf("Successful!!Center restarts!!");
         }
     }
 
@@ -59,7 +72,7 @@ public class MessageCenter {
         try{
             sendQueue.put(message);
         } catch (Exception e){
-
+            e.printStackTrace();
         }
     }
 
@@ -75,23 +88,48 @@ public class MessageCenter {
 
 
     class SendThread extends Thread{
+        private boolean isStart = true;
         @Override
         public void run(){
             while(!sendQueue.isEmpty()){
-                try{
-                    BaseMessage message = sendQueue.take();
-                    send(message);
-                    Thread.sleep(60000/SENDPERMINS);
-                } catch (Exception e){
-
+                if(this.isStart) {
+                    try {
+                        BaseMessage message = sendQueue.take();
+                        send(message);
+                        Thread.sleep(60000 / SENDPERMINS);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
+            }
+        }
 
+        public void startCenter(){
+            this.isStart = true;
+            if(this.isStart){
+//                System.console().printf("Failed!!SendThread is already running!!");
+            }
+            else{
+                this.isStart = true;
+//                System.console().printf("Successful!!SendThread restarts!! Please wait for 2 seconds");
+//                System.console().printf("......");
 
             }
         }
 
+        public boolean isSuspend(){
+            return this.isStart;
+        }
 
-
+        public void suspendCenter(){
+            if(this.isStart){
+                this.isStart = false;
+//                System.console().printf("Successful!!SendThread suspends!!");
+            }
+            else{
+//                System.console().printf("Failed!!SendThread is already suspended!!");
+            }
+        }
     }
 
 }
