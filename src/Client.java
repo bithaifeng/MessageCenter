@@ -16,12 +16,15 @@ public class Client {
         }
         center.startCenter();
         try {
-            Thread.sleep(200);
+            Thread.sleep(2000);
         }
         catch(Exception e) {
         }
+
         center.suspendCenter();
+
         center.reStartCenter();
+
         for (int i = 0 ;i < 20; i++){
             HiMessage hiMessage = new HiMessage("LiHaifeng","HiSomeOne");
             hiMessage.setContent("This is the " + i + "th");

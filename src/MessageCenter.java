@@ -1,6 +1,4 @@
 
-import java.util.Queue;
-import java.util.LinkedList;
 import message.BaseMessage;
 import send.BaseSend;
 import java.util.concurrent.BlockingDeque;
@@ -8,13 +6,16 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ExecutorService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  * Created by haifeng on 2015/11/7.
  */
 public class MessageCenter {
     private static BlockingDeque<BaseMessage> sendQueue = new LinkedBlockingDeque<message.BaseMessage>();
-    private static BlockingDeque<BaseMessage> reciveQueue = new LinkedBlockingDeque<message.BaseMessage>();
+    static private Logger logger = LoggerFactory.getLogger(MessageCenter.class);
     private static Integer SENDPERMINS = 1000;
     private static BaseSend sender = new BaseSend();
     private Executor executor;
@@ -29,8 +30,19 @@ public class MessageCenter {
 
     public synchronized void startCenter(){
         if(null == this.sendThread){
+            logger.info("MessageCenter is starting...");
+            logger.info("Please wait for 2 seconds.");
+            try {
+                Thread.sleep(2000);
+            }
+            catch(Exception e) {
+            }
             sendThread = new SendThread();
             this.sendThread.start();
+
+        }
+        else{
+            logger.info("MessageCenter has started...");
         }
     }
 
@@ -51,20 +63,32 @@ public class MessageCenter {
     public void suspendCenter(){
         if(this.sendThread.isSuspend()){
             this.sendThread.suspendCenter();
-//            System.console().printf("Successful!!Center suspends!!");
+            logger.info("MessageCenter suspends!!");
         }
         else{
-//            System.console().printf("Failed!!Center is suspended!!");
+            logger.info("Failed!!Center is suspended!!");
         }
     }
 
     public void reStartCenter(){
         if(this.sendThread.isSuspend()){
-//            System.console().printf("Failed!!Center is running!!");
+            logger.info("Failed!!Center is running!!");
         }
         else{
+            logger.info("MessageCenter is starting...");
+            logger.info("Please wait for 2 seconds.");
+            try {
+                Thread.sleep(2000);
+            }
+            catch(Exception e) {
+            }
             this.sendThread.startCenter();
-//            System.console().printf("Successful!!Center restarts!!");
+            logger.info("Successful!!Center restarts!!");
+            try {
+                Thread.sleep(500);
+            }
+            catch(Exception e) {
+            }
         }
     }
 
@@ -91,7 +115,7 @@ public class MessageCenter {
         private boolean isStart = true;
         @Override
         public void run(){
-            while(!sendQueue.isEmpty()){
+            while(true){
                 if(this.isStart) {
                     try {
                         BaseMessage message = sendQueue.take();
@@ -107,12 +131,9 @@ public class MessageCenter {
         public void startCenter(){
             this.isStart = true;
             if(this.isStart){
-//                System.console().printf("Failed!!SendThread is already running!!");
             }
             else{
                 this.isStart = true;
-//                System.console().printf("Successful!!SendThread restarts!! Please wait for 2 seconds");
-//                System.console().printf("......");
 
             }
         }
@@ -124,10 +145,8 @@ public class MessageCenter {
         public void suspendCenter(){
             if(this.isStart){
                 this.isStart = false;
-//                System.console().printf("Successful!!SendThread suspends!!");
             }
             else{
-//                System.console().printf("Failed!!SendThread is already suspended!!");
             }
         }
     }
